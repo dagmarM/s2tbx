@@ -547,112 +547,115 @@ class CloudShadowFlaggerCombination {
             sortedCluster.add(j, clusterCentroid);
         }
         double maxDist = sortedCluster.get(sortedCluster.size() - 1) - sortedCluster.get(0);
-        double averageDistance = maxDist / (numberOfClusters - 1);
-        for (int i = 0; i < sortedCluster.size() - 2; i++) {
-            if (sortedCluster.get(i + 1) - sortedCluster.get(i) > averageDistance) {
-                break;
-            }
-        }
-        double threshold = sortedCluster.get(0) + (sortedCluster.get(1) - sortedCluster.get(0)) / 2;
-        List<Integer> shadowIndex = new ArrayList<>();
-        List<Integer> shadowOffset = new ArrayList<>();
-        List<Double> shadowRefl = new ArrayList<>();
+        if (maxDist > 0){
 
-        for (int j = 0; j < counter; j++) { //potential cloud shadow
-            //cloudTestArray[arrayIndexes[j]] = key; //potential cloud shadow in the analysis
-            if (band[j] < threshold) {
-                int flagIndex = arrayIndexes[j];
-                if (bestOffset > 0) {
-                    if (arrayOffsets[j] < 3 * bestOffset && arrayOffsets[j] > 0) {
-                        shadowOffset.add(arrayOffsets[j]);
-                        shadowIndex.add(flagIndex);
-
-                        shadowRefl.add(band[j]);
-                    }
-                    if (!((flagArray[flagIndex] & PreparationMaskBand.CLOUD_SHADOW_FLAG) == PreparationMaskBand.CLOUD_SHADOW_FLAG)
-                            && arrayOffsets[j] < 3 * bestOffset && arrayOffsets[j] > 0 && cloudSize > 1) {
-                        flagArray[flagIndex] += PreparationMaskBand.CLOUD_SHADOW_FLAG;
-                    }
-                } else {
-                    if (arrayOffsets[j] > 0) {
-                        shadowOffset.add(arrayOffsets[j]);
-                        shadowIndex.add(flagIndex);
-                        shadowRefl.add(band[j]);
-                    }
-                    if (!((flagArray[flagIndex] & PreparationMaskBand.CLOUD_SHADOW_FLAG) == PreparationMaskBand.CLOUD_SHADOW_FLAG)
-                            && arrayOffsets[j] > 0 && cloudSize > 1) {
-                        flagArray[flagIndex] += PreparationMaskBand.CLOUD_SHADOW_FLAG;
-                    }
+            double averageDistance = maxDist / (numberOfClusters - 1);
+            for (int i = 0; i < sortedCluster.size() - 2; i++) {
+                if (sortedCluster.get(i + 1) - sortedCluster.get(i) > averageDistance) {
+                    break;
                 }
             }
-        }
+            double threshold = sortedCluster.get(0) + (sortedCluster.get(1) - sortedCluster.get(0)) / 2;
+            List<Integer> shadowIndex = new ArrayList<>();
+            List<Integer> shadowOffset = new ArrayList<>();
+            List<Double> shadowRefl = new ArrayList<>();
 
+            for (int j = 0; j < counter; j++) { //potential cloud shadow
+                //cloudTestArray[arrayIndexes[j]] = key; //potential cloud shadow in the analysis
+                if (band[j] < threshold) {
+                    int flagIndex = arrayIndexes[j];
+                    if (bestOffset > 0) {
+                        if (arrayOffsets[j] < 3 * bestOffset && arrayOffsets[j] > 0) {
+                            shadowOffset.add(arrayOffsets[j]);
+                            shadowIndex.add(flagIndex);
 
-
-        /*
-        Checking cloud shadow results of the shifted mask against the clusters.
-        Can only work, if bestOffset >0!!
-        •	1) Find all continuous clusters of dark pixels.
-        •	compare position of shifted cloud mask and cluster; and reflectance values for both.
-        */
-
-
-        if (bestOffset > 0 && shadowIndex.size() > 20 && cloudSize > 1) {
-            //duplicates are removed!
-            //initialize with shadow flags from clustering.
-            int test[] = new int[flagArray.length];
-            for (Integer aShadowIndex : shadowIndex) {
-                test[aShadowIndex] = 1;
-            }
-            //find continuous cluster
-
-            FindContinuousAreas testContinuousShadow = new FindContinuousAreas(test);
-            Map<Integer, List<Integer>> listShadowID = testContinuousShadow.computeAreaID(width, height, shadowIDArray, false);
-            if (listShadowID.size() > 1) {
-                Map<Integer, Integer> meanOffsetClust = new HashMap<>();
-
-                //calculate mean offset and mean Refl for each of the continuous shadow areas from the clustering
-                for (int i : listShadowID.keySet()) {
-
-                    List<Integer> pos = listShadowID.get(i);
-                    double meanRefl = 0.;
-                    int meanOffset = 0;
-                    int N = 0;
-                    for (int j : pos) {
-
-                        shadowIDArray[j] = i;
-                        int k = shadowIndex.indexOf(j);
-                        if (k > 0) {
-                            meanOffset += shadowOffset.get(k);
-                            meanRefl += shadowRefl.get(k);
-                            N += 1;
+                            shadowRefl.add(band[j]);
+                        }
+                        if (!((flagArray[flagIndex] & PreparationMaskBand.CLOUD_SHADOW_FLAG) == PreparationMaskBand.CLOUD_SHADOW_FLAG)
+                                && arrayOffsets[j] < 3 * bestOffset && arrayOffsets[j] > 0 && cloudSize > 1) {
+                            flagArray[flagIndex] += PreparationMaskBand.CLOUD_SHADOW_FLAG;
+                        }
+                    } else {
+                        if (arrayOffsets[j] > 0) {
+                            shadowOffset.add(arrayOffsets[j]);
+                            shadowIndex.add(flagIndex);
+                            shadowRefl.add(band[j]);
+                        }
+                        if (!((flagArray[flagIndex] & PreparationMaskBand.CLOUD_SHADOW_FLAG) == PreparationMaskBand.CLOUD_SHADOW_FLAG)
+                                && arrayOffsets[j] > 0 && cloudSize > 1) {
+                            flagArray[flagIndex] += PreparationMaskBand.CLOUD_SHADOW_FLAG;
                         }
                     }
+                }
+            }
 
-                    if (N > 0) {
-                        meanOffsetClust.put(i, meanOffset / N);
+
+
+            /*
+            Checking cloud shadow results of the shifted mask against the clusters.
+            Can only work, if bestOffset >0!!
+            •	1) Find all continuous clusters of dark pixels.
+            •	compare position of shifted cloud mask and cluster; and reflectance values for both.
+            */
+
+
+            if (bestOffset > 0 && shadowIndex.size() > 20 && cloudSize > 1) {
+                //duplicates are removed!
+                //initialize with shadow flags from clustering.
+                int test[] = new int[flagArray.length];
+                for (Integer aShadowIndex : shadowIndex) {
+                    test[aShadowIndex] = 1;
+                }
+                //find continuous cluster
+
+                FindContinuousAreas testContinuousShadow = new FindContinuousAreas(test);
+                Map<Integer, List<Integer>> listShadowID = testContinuousShadow.computeAreaID(width, height, shadowIDArray, false);
+                if (listShadowID.size() > 1) {
+                    Map<Integer, Integer> meanOffsetClust = new HashMap<>();
+
+                    //calculate mean offset and mean Refl for each of the continuous shadow areas from the clustering
+                    for (int i : listShadowID.keySet()) {
+
+                        List<Integer> pos = listShadowID.get(i);
+                        double meanRefl = 0.;
+                        int meanOffset = 0;
+                        int N = 0;
+                        for (int j : pos) {
+
+                            shadowIDArray[j] = i;
+                            int k = shadowIndex.indexOf(j);
+                            if (k > 0) {
+                                meanOffset += shadowOffset.get(k);
+                                meanRefl += shadowRefl.get(k);
+                                N += 1;
+                            }
+                        }
+
+                        if (N > 0) {
+                            meanOffsetClust.put(i, meanOffset / N);
+                        }
+
                     }
+                    Map<Integer, Double> clusterTest = new HashMap<>();
+                    double minRefl = 0.;
+                    for (int i : meanOffsetClust.keySet()) {
 
-                }
-                Map<Integer, Double> clusterTest = new HashMap<>();
-                double minRefl = 0.;
-                for (int i : meanOffsetClust.keySet()) {
+                        double meanRefl = setMeanRefl(cloud, meanOffsetClust.get(i), sourceBand, cloudPath);
+                        clusterTest.put(i, meanRefl);
 
-                    double meanRefl = setMeanRefl(cloud, meanOffsetClust.get(i), sourceBand, cloudPath);
-                    clusterTest.put(i, meanRefl);
-
-                    if (minRefl == 0 || meanRefl < minRefl) minRefl = meanRefl;
-                }
-                if (minRefl > 0) {
-                    if (minRefl < meanReflShift) {
-                        for (int index : clusterTest.keySet()) {
-                            if (clusterTest.get(index) == minRefl) {
-                                int offset = meanOffsetClust.get(index);
-                                if (offset < 2 * bestOffset) {
-                                    //remove flags for shifted shadow for bestOffset
-                                    switchOffShiftedCloudShadowFlag(cloud, bestOffset, cloudPath);
-                                    //add flags for shifted shadow for this offset.
-                                    setShiftedCloudShadowFlag(cloud, offset, cloudPath);
+                        if (minRefl == 0 || meanRefl < minRefl) minRefl = meanRefl;
+                    }
+                    if (minRefl > 0) {
+                        if (minRefl < meanReflShift) {
+                            for (int index : clusterTest.keySet()) {
+                                if (clusterTest.get(index) == minRefl) {
+                                    int offset = meanOffsetClust.get(index);
+                                    if (offset < 2 * bestOffset) {
+                                        //remove flags for shifted shadow for bestOffset
+                                        switchOffShiftedCloudShadowFlag(cloud, bestOffset, cloudPath);
+                                        //add flags for shifted shadow for this offset.
+                                        setShiftedCloudShadowFlag(cloud, offset, cloudPath);
+                                    }
                                 }
                             }
                         }
@@ -660,7 +663,6 @@ class CloudShadowFlaggerCombination {
                 }
             }
         }
-
 
     }
 

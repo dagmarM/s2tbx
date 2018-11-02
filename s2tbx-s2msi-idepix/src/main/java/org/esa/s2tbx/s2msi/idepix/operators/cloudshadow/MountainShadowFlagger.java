@@ -20,8 +20,10 @@ class MountainShadowFlagger {
         //GK: SunZenith is reduced to find more than the core shadow.
         double sunZenithIntermediate;
         if (SHADOW_ADAPTER_SZA) {
-            sunZenithIntermediate =
-                    (double) sourceSunZenith * (2. * Math.pow(((90. - (double) sourceSunZenith) / 90), 3) + 1.);
+//            sunZenithIntermediate =
+//                    (double) sourceSunZenith * (2. * Math.pow(((90. - (double) sourceSunZenith) / 90), 3) + 1.);
+            sunZenithIntermediate = 73.;
+                   // (double) sourceSunZenith * (2. * Math.pow(((90. - (double) sourceSunZenith) / 90), 3) + 1.);
         } else {
             sunZenithIntermediate = (double) sourceSunZenith;
         }
@@ -32,20 +34,20 @@ class MountainShadowFlagger {
         final double[] relativeMinMountainHeights = getRelativeMinMountainHeights(relativePath,
                 S2IdepixPreCloudShadowOp.spatialResolution,
                 sunZenithRad);
-        if (maxAltitude - minAltitude < relativeMinMountainHeights[1]) {
+        if (maxAltitude - minAltitude < relativeMinMountainHeights[0]) {
             return;
         }
         int xOffset = 0;
         int yOffset = 0;
 
-        int relPathDeltaX1 = (int) relativePath[1].getX();
-        int ip = 2;
+        int relPathDeltaX1 = (int) relativePath[0].getX();
+        int ip = 1;
         while (relPathDeltaX1 == 0 && ip < relativePath.length) {
             relPathDeltaX1 = (int) relativePath[ip].getX();
             ip++;
         }
-        int relPathDeltaY1 = (int) relativePath[1].getY();
-        ip = 2;
+        int relPathDeltaY1 = (int) relativePath[0].getY();
+        ip = 1;
         while (relPathDeltaY1 == 0 && ip < relativePath.length) {
             relPathDeltaY1 = (int) relativePath[ip].getY();
             ip++;

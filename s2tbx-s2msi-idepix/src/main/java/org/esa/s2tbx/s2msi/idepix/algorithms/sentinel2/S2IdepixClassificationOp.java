@@ -3,6 +3,7 @@ package org.esa.s2tbx.s2msi.idepix.algorithms.sentinel2;
 import com.bc.ceres.core.ProgressMonitor;
 import org.esa.s2tbx.s2msi.idepix.util.S2IdepixConstants;
 import org.esa.s2tbx.s2msi.idepix.util.S2IdepixUtils;
+import org.esa.s2tbx.s2msi.idepix.util.SchillerNeuralNetWrapper;
 import org.esa.snap.core.datamodel.Band;
 import org.esa.snap.core.datamodel.FlagCoding;
 import org.esa.snap.core.datamodel.GeoCoding;
@@ -182,8 +183,8 @@ public class S2IdepixClassificationOp extends Operator {
     private Product elevationProduct;
 
 
-//    public static final String NN_NAME = "20x4x2_1012.9.net";    // Landsat 'all' NN
-//    ThreadLocal<SchillerNeuralNetWrapper> neuralNet;
+    public static final String NN_NAME = "20x4x2_1012.9.net";    // Landsat 'all' NN
+    ThreadLocal<SchillerNeuralNetWrapper> neuralNet;
 
 
     @Override
@@ -445,6 +446,7 @@ public class S2IdepixClassificationOp extends Operator {
         final boolean isValid = validPixelTile.getSampleBoolean(x, y);
         s2MsiAlgorithm.setInvalid(!isValid);
 
+        // comment:
 //        SchillerNeuralNetWrapper nnWrapper = neuralNet.get();
 //        double[] inputVector = nnWrapper.getInputVector();
 //        float[] s2ToLandsatReflectances = mapToLandsatReflectances(s2MsiReflectances, inputVector);
@@ -483,38 +485,38 @@ public class S2IdepixClassificationOp extends Operator {
         return geoPos;
     }
 
-//    private float[] mapToLandsatReflectances(float[] s2MsiReflectances, double[] inputVector) {
-//        //        the net has 8 inputs:
-//        //        input  1 is SQRT_coastal_aerosol in [0.255898,1.388849]
-//        //        input  2 is SQRT_blue in [0.221542,1.479245]
-//        //        input  3 is SQRT_green in [0.170573,1.543012]
-//        //        input  4 is SQRT_red in [0.125654,1.678217]
-//        //        input  5 is SQRT_near_infrared in [0.082347,1.775742]
-//        //        input  6 is SQRT_swir_1 in [0.032031,1.356978]
-//        //        input  7 is SQRT_swir_2 in [0.008660,1.840141]
-//        //        input  8 is SQRT_cirrus in [0.000000,0.878521]
-//
-//        // L1 --> B1         440/443
-//        // L2 --> B2         480/490
-//        // L3 --> B3         560/560
-//        // L4 --> B4         655/665
-//        // L5 --> B8A        865/865
-//        // L6 --> B11        1610/1610
-//        // L7 --> B12        2200/2190
-//        // L9 --> B10        1370/1375
-//
-//        float[] mappedToLandsatReflectances = new float[inputVector.length];
-//        if (inputVector.length < 8) {
-//            throw new OperatorException("Incompatible NN: " + NN_NAME + " - cannot continue.");
-//        }
-//        System.arraycopy(s2MsiReflectances, 0, mappedToLandsatReflectances, 0, 4);
-//        mappedToLandsatReflectances[4] = s2MsiReflectances[8];
-//        mappedToLandsatReflectances[5] = s2MsiReflectances[11];
-//        mappedToLandsatReflectances[6] = s2MsiReflectances[12];
-//        mappedToLandsatReflectances[7] = s2MsiReflectances[10];
-//
-//        return mappedToLandsatReflectances;
-//    }
+    private float[] mapToLandsatReflectances(float[] s2MsiReflectances, double[] inputVector) {
+        //        the net has 8 inputs:
+        //        input  1 is SQRT_coastal_aerosol in [0.255898,1.388849]
+        //        input  2 is SQRT_blue in [0.221542,1.479245]
+        //        input  3 is SQRT_green in [0.170573,1.543012]
+        //        input  4 is SQRT_red in [0.125654,1.678217]
+        //        input  5 is SQRT_near_infrared in [0.082347,1.775742]
+        //        input  6 is SQRT_swir_1 in [0.032031,1.356978]
+        //        input  7 is SQRT_swir_2 in [0.008660,1.840141]
+        //        input  8 is SQRT_cirrus in [0.000000,0.878521]
+
+        // L1 --> B1         440/443
+        // L2 --> B2         480/490
+        // L3 --> B3         560/560
+        // L4 --> B4         655/665
+        // L5 --> B8A        865/865
+        // L6 --> B11        1610/1610
+        // L7 --> B12        2200/2190
+        // L9 --> B10        1370/1375
+
+        float[] mappedToLandsatReflectances = new float[inputVector.length];
+        if (inputVector.length < 8) {
+            throw new OperatorException("Incompatible NN: " + NN_NAME + " - cannot continue.");
+        }
+        System.arraycopy(s2MsiReflectances, 0, mappedToLandsatReflectances, 0, 4);
+        mappedToLandsatReflectances[4] = s2MsiReflectances[8];
+        mappedToLandsatReflectances[5] = s2MsiReflectances[11];
+        mappedToLandsatReflectances[6] = s2MsiReflectances[12];
+        mappedToLandsatReflectances[7] = s2MsiReflectances[10];
+
+        return mappedToLandsatReflectances;
+    }
 
     private double calcRhoToa442ThresholdTerm(double sza, double vza, double saa, double vaa) {
         //final double thetaScatt = IdepixUtils.calcScatteringAngle(sza, vza, saa, vaa) * MathUtils.DTOR;

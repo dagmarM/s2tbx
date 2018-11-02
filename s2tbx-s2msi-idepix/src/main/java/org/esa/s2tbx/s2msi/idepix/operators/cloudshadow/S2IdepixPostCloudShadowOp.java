@@ -444,6 +444,7 @@ public class S2IdepixPostCloudShadowOp extends Operator {
 
             }
             RecommendedCloudShadowFlagger.setRecommendedCloudShadowFlag(bestOffset, flagArray, sourceRectangle);
+
         }
         fillTile(flagArray, targetRectangle, sourceRectangle, targetTileCloudShadow);
         fillTile(cloudIDArray, targetRectangle, sourceRectangle, targetTileCloudID);
