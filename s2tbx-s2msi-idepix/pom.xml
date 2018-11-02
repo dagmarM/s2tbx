@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.esa.s2tbx</groupId>
         <artifactId>s2tbx</artifactId>
-        <version>6.0.2-SNAPSHOT</version>
+        <version>6.0.3-SNAPSHOT</version>
     </parent>
 
     <artifactId>s2tbx-s2msi-idepix</artifactId>
@@ -16,7 +16,7 @@
     <description>Generic classification of pixels (cloud, snow, ice, land, water) originating from S2-MSI instrument.</description>
 
     <properties>
-        <s2tbx.idepix.version>6.0.1.1</s2tbx.idepix.version>
+        <s2tbx.idepix.version>6.0.2.1</s2tbx.idepix.version>
     </properties>
 
     <dependencies>
